@@ -39,7 +39,7 @@ public class FractureChunk : MonoBehaviour
 
             GetComponent<MeshCollider>().sharedMesh = mesh;
 			
-			renderer.sharedMaterial = material;
+			GetComponent<Renderer>().sharedMaterial = material;
 		}
 	}
 
@@ -67,7 +67,7 @@ public class FractureChunk : MonoBehaviour
             mesh.triangles = triangles;
             mesh.RecalculateBounds();
 
-            renderer.sharedMaterial = material;
+            GetComponent<Renderer>().sharedMaterial = material;
         }
     }
 }
