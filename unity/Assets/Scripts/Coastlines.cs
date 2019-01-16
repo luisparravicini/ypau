@@ -23,6 +23,9 @@ public class Coastlines : MonoBehaviour
         sites = new List<Point>();
         voronoi = new FortuneVoronoi();
 		chunks = new List<GameObject>();
+
+        CreateSites(true, false);
+        CreateChunks();
     }
 
     void Update()
