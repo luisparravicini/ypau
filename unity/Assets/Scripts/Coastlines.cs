@@ -11,18 +11,18 @@ public class Coastlines : MonoBehaviour
 {
     public int numSites = 36;
     public Bounds bounds;
-	public GameObject chunkObj;
+    public GameObject chunkObj;
 
     private List<Point> sites;
     private FortuneVoronoi voronoi;
     public VoronoiGraph graph;
-	private List<GameObject> chunks;
+    private List<GameObject> chunks;
 
     void Start()
     {
         sites = new List<Point>();
         voronoi = new FortuneVoronoi();
-		chunks = new List<GameObject>();
+        chunks = new List<GameObject>();
 
         CreateSites(true, false);
         CreateChunks();
@@ -33,39 +33,41 @@ public class Coastlines : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))
         {
             CreateSites(true, false);
-			CreateChunks();
+            CreateChunks();
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
             RelaxSites(1);
+            CreateChunks();
         }
-		if (Input.GetKeyDown(KeyCode.M) && graph)
-		{
-			CreateChunks();
-		}
+        if (Input.GetKeyDown(KeyCode.M) && graph)
+        {
+            CreateChunks();
+        }
     }
-	
-	void CreateChunks()
-	{
-		foreach (GameObject obj in chunks)
-		{
-			Destroy(obj);
-		}
-		chunks.Clear();
-		
-		foreach (Cell cell in graph.cells)
-		{
-			GameObject chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity) as GameObject;
+
+    void CreateChunks()
+    {
+        foreach (GameObject obj in chunks)
+        {
+            Destroy(obj);
+        }
+        chunks.Clear();
+
+        foreach (Cell cell in graph.cells)
+        {
+            GameObject chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity) as GameObject;
             chunk.name = "Chunk " + cell.site.id;
-			chunks.Add(chunk);
+            chunks.Add(chunk);
 
             var fracChunk = chunk.GetComponent<FractureChunk>();
             fracChunk.CreateFanMesh(cell);
+
             var c = new Color(Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f));
             fracChunk.SetColor(c);
-		}
-	}
-	
+        }
+    }
+
     void Compute(List<Point> sites)
     {
         this.sites = sites;
@@ -200,11 +202,11 @@ public class Coastlines : MonoBehaviour
                 {
                     for (int i = 0; i < cell.halfEdges.Count; i++)
                     {
-						HalfEdge halfEdge = cell.halfEdges[i];
+                        HalfEdge halfEdge = cell.halfEdges[i];
 
-                            Gizmos.color = Color.red;
-                            Gizmos.DrawLine(halfEdge.GetStartPoint().ToVector3(),
-                                            halfEdge.GetEndPoint().ToVector3());
+                        Gizmos.color = Color.red;
+                        Gizmos.DrawLine(halfEdge.GetStartPoint().ToVector3(),
+                                        halfEdge.GetEndPoint().ToVector3());
                     }
                 }
             }
