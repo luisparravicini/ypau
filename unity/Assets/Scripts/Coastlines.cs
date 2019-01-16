@@ -16,13 +16,17 @@ public class Coastlines : MonoBehaviour
     private List<Point> sites;
     private FortuneVoronoi voronoi;
     public VoronoiGraph graph;
-    private List<GameObject> chunks;
+    private List<FractureChunk> chunks;
+    private Queue<FractureChunk> chunksPool;
+    public Transform chunksContainer;
+    public Transform poolContainer;
 
     void Start()
     {
         sites = new List<Point>();
         voronoi = new FortuneVoronoi();
-        chunks = new List<GameObject>();
+        chunks = new List<FractureChunk>();
+        chunksPool = new Queue<FractureChunk>();
 
         CreateSites(true, false);
         CreateChunks();
@@ -48,23 +52,35 @@ public class Coastlines : MonoBehaviour
 
     void CreateChunks()
     {
-        foreach (GameObject obj in chunks)
+        foreach (var obj in chunks)
         {
-            Destroy(obj);
+            obj.gameObject.SetActive(false);
+            obj.transform.SetParent(poolContainer);
+            chunksPool.Enqueue(obj);
         }
         chunks.Clear();
 
         foreach (Cell cell in graph.cells)
         {
-            GameObject chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity) as GameObject;
+            FractureChunk chunk;
+            if (chunksPool.Count > 0)
+            {
+                chunk = chunksPool.Dequeue();
+                chunk.gameObject.SetActive(true);
+            }
+            else
+            {
+                chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity).GetComponent<FractureChunk>();
+            }
             chunk.name = "Chunk " + cell.site.id;
+            chunk.transform.SetParent(chunksContainer);
             chunks.Add(chunk);
 
-            var fracChunk = chunk.GetComponent<FractureChunk>();
-            fracChunk.CreateFanMesh(cell);
+            //fracChunk.CreateFanMesh(cell);
+            chunk.CreateStipMesh(cell);
 
             var c = new Color(Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f));
-            fracChunk.SetColor(c);
+            chunk.SetColor(c);
         }
     }
 
