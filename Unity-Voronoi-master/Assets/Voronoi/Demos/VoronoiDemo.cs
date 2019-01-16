@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Voronoi;
 using Cell = Voronoi.Cell;
 
-public class VoronoiDemo : Editor
+public class VoronoiDemo : MonoBehaviour
 {
     public int numSites = 36;
     public Bounds bounds;
