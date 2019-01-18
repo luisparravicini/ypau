@@ -11,15 +11,20 @@ public class Coastlines : MonoBehaviour
 {
     public int numSites = 36;
     public Bounds bounds;
+    public int relaxationSteps;
     public GameObject chunkObj;
+    public Transform chunksContainer;
+    public Transform poolContainer;
+    public Gradient heightColors;
+    public float heightDecay;
+    public float sharpness;
 
     private List<Point> sites;
     private FortuneVoronoi voronoi;
     public VoronoiGraph graph;
     private List<FractureChunk> chunks;
     private Queue<FractureChunk> chunksPool;
-    public Transform chunksContainer;
-    public Transform poolContainer;
+    Heights heightMap;
 
     void Start()
     {
@@ -28,25 +33,37 @@ public class Coastlines : MonoBehaviour
         chunks = new List<FractureChunk>();
         chunksPool = new Queue<FractureChunk>();
 
-        CreateSites(true, false);
+        CreateMap();
+    }
+
+    private void CreateMap()
+    {
+        var start = System.DateTime.Now;
+        CreateSites(true, true, relaxationSteps);
+        var finish = System.DateTime.Now;
+        var elapsedSites = (finish - start).TotalSeconds;
+
+        start = System.DateTime.Now;
+        CreateHeights();
+        finish = System.DateTime.Now;
+        var elapsedHeights = (finish - start).TotalSeconds;
+
+        start = System.DateTime.Now;
         CreateChunks();
+        finish = System.DateTime.Now;
+        var elapsedChunks = (finish - start).TotalSeconds;
+
+        Debug.Log("sites:" + elapsedSites + "s"
+        + ", heights:" + elapsedHeights + "s"
+        + ", chunks:" + elapsedChunks + "s"
+        + ", nSites:" + numSites);
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.G))
         {
-            CreateSites(true, false);
-            CreateChunks();
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            RelaxSites(1);
-            CreateChunks();
-        }
-        if (Input.GetKeyDown(KeyCode.M) && graph)
-        {
-            CreateChunks();
+            CreateMap();
         }
     }
 
@@ -78,10 +95,14 @@ public class Coastlines : MonoBehaviour
 
             //fracChunk.CreateFanMesh(cell);
             chunk.CreateStipMesh(cell);
-
-            var c = new Color(Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f), Random.Range(.4f, 0.9f));
-            chunk.SetColor(c);
+            chunk.SetColor(heightColors.Evaluate(heightMap.Height(cell.site)));
         }
+    }
+
+    void CreateHeights()
+    {
+        heightMap = new Heights(graph, heightDecay, sharpness);
+        heightMap.Create();
     }
 
     void Compute(List<Point> sites)
@@ -226,6 +247,19 @@ public class Coastlines : MonoBehaviour
                     }
                 }
             }
+
+            //foreach (var edge in graph.edges)
+            //{
+            //    if (edge.rSite != null)
+            //    {
+            //        Gizmos.color = Color.yellow;
+            //        Gizmos.DrawLine(edge.lSite.ToVector3(), edge.rSite.ToVector3());
+            //        Gizmos.DrawSphere(edge.lSite.ToVector3(), 0.2f);
+
+            //        Gizmos.color = Color.green;
+            //        Gizmos.DrawSphere(edge.rSite.ToVector3(), 0.2f);
+            //    }
+            //}
         }
     }
 }
