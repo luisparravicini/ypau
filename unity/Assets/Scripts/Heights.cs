@@ -34,7 +34,7 @@ public class Heights
         while (queue.Count > 0)
         {
             var p = queue.Dequeue();
-            var modifier = Random.value * sharpness;
+            var modifier = 1 + Random.value * sharpness - sharpness;
             if (Mathf.Approximately(modifier, 0))
                 modifier = 1;
             var h = Mathf.Clamp(AverageNearHeights(p) * decay * modifier, 0, 1);
@@ -87,20 +87,10 @@ public class Heights
 
     private void EnqueueNeighbours(Queue<Point> queue, Point point)
     {
-        foreach (var edge in graph.edges)
+        foreach (var neighbourPoint in edges[point])
         {
-            if (edge.lSite == point)
-            {
-                var neighbour = edge.rSite;
-                if (neighbour != null && !heights.ContainsKey(neighbour) && !queue.Contains(neighbour))
-                    queue.Enqueue(neighbour);
-            }
-            if (edge.rSite == point)
-            {
-                var neighbour = edge.lSite;
-                if (neighbour != null && !heights.ContainsKey(neighbour) && !queue.Contains(neighbour))
-                    queue.Enqueue(neighbour);
-            }
+            if (!heights.ContainsKey(neighbourPoint) && !queue.Contains(neighbourPoint))
+                queue.Enqueue(neighbourPoint);
         }
     }
 

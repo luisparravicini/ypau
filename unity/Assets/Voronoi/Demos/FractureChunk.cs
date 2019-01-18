@@ -7,7 +7,7 @@ using System;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(MeshCollider))]
+//[RequireComponent(typeof(MeshCollider))]
 public class FractureChunk : MonoBehaviour
 {
     public Material material;
@@ -36,11 +36,11 @@ public class FractureChunk : MonoBehaviour
         }
     }
 
-    public void CreateFanMesh(Cell cell)
-    {
-        if (CreateMesh(cell))
-            GetComponent<MeshCollider>().sharedMesh = mesh;
-    }
+    //public void CreateFanMesh(Cell cell)
+    //{
+    //    if (CreateMesh(cell))
+    //        GetComponent<MeshCollider>().sharedMesh = mesh;
+    //}
 
     public void CreateStipMesh(Cell cell)
     {

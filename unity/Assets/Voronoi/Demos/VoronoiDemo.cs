@@ -55,7 +55,7 @@ public class VoronoiDemo : MonoBehaviour
 			GameObject chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity) as GameObject;
             chunk.name = "Chunk " + cell.site.id;
 			chunks.Add(chunk);
-			chunk.GetComponent<FractureChunk>().CreateFanMesh(cell);
+			//chunk.GetComponent<FractureChunk>().CreateFanMesh(cell);
 		}
 	}
 	
