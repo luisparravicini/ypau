@@ -13,8 +13,6 @@ public class Coastlines : MonoBehaviour
     public Bounds bounds;
     public int relaxationSteps;
     public GameObject chunkObj;
-    public Transform chunksContainer;
-    public Transform poolContainer;
     public Gradient heightColors;
     public float heightDecay;
     public float sharpness;
@@ -69,8 +67,9 @@ public class Coastlines : MonoBehaviour
 
     public void CreateMesh()
     {
+        const int MaxMaterials = 10;
         var allVertices = new List<Vector3>();
-        var allTriangs = new List<int>();
+        var allTriangs = new Dictionary<int, List<int>>();
         var meshFilter = GetComponent<MeshFilter>();
         var meshRenderer = GetComponent<MeshRenderer>();
         var mesh = meshFilter.mesh;
@@ -80,9 +79,7 @@ public class Coastlines : MonoBehaviour
         var triangles = new List<int>();
         foreach (var cell in graph.cells)
         {
-            bool willCreate = (cell.halfEdges.Count > 0);
-
-            if (!willCreate) continue;
+            if (cell.halfEdges.Count == 0) continue;
 
             var position = transform.position;
 
@@ -110,21 +107,46 @@ public class Coastlines : MonoBehaviour
                     allVertices.Add(vertex);
                 }
             }
+            var submesh = Mathf.RoundToInt(heightMap.Height(cell.site) * MaxMaterials);
+            if (!allTriangs.ContainsKey(submesh))
+                allTriangs[submesh] = new List<int>();
             foreach (var index in triangles)
             {
                 var i = verticesHash[vertices[index]];
-                allTriangs.Add(i);
+                allTriangs[submesh].Add(i);
             }
             vertices.Clear();
             triangles.Clear();
         }
 
-        Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + allTriangs.Count);
+        var triangCount = allTriangs.Values.Sum(values => values.Count);
+        Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + triangCount);
+
         mesh.Clear();
         mesh.vertices = allVertices.ToArray();
-        mesh.triangles = allTriangs.ToArray();
+
+        mesh.subMeshCount = MaxMaterials;
+        var keys = allTriangs.Keys.ToArray<int>();
+        System.Array.Sort<int>(keys);
+        foreach (var index in keys)
+        {
+            mesh.SetIndices(allTriangs[index].ToArray(), MeshTopology.Triangles, index);
+        }
+
         mesh.RecalculateBounds();
-        //meshRenderer.sharedMaterial = material;
+
+        var materials = new List<Material>();
+        var heightMaterial = Resources.Load<Material>("Height");
+        while (materials.Count < MaxMaterials)
+            materials.Add(heightMaterial);
+        meshRenderer.materials = materials.ToArray();
+
+        var colorIndex = 0f;
+        foreach (var m in meshRenderer.materials)
+        {
+            m.color = heightColors.Evaluate(colorIndex);
+            colorIndex += 1f / MaxMaterials;
+        }
     }
 
     void CreateChunks()
