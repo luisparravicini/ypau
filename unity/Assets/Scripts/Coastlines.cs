@@ -51,6 +51,10 @@ public class Coastlines : MonoBehaviour
         finish = System.DateTime.Now;
         var elapsedChunks = (finish - start).TotalSeconds;
 
+        var colliderForUI = GetComponent<BoxCollider>();
+        colliderForUI.center = bounds.center;
+        colliderForUI.size = bounds.size;
+
         Debug.Log("sites:" + elapsedSites + "s"
         + ", heights:" + elapsedHeights + "s"
         + ", chunks:" + elapsedChunks + "s"
@@ -61,9 +65,35 @@ public class Coastlines : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.G))
             CreateMap();
+
+        if (Input.GetMouseButtonDown(0))
+            ChangeHeights();
     }
 
+    void ChangeHeights()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
 
+        if (Physics.Raycast(ray, out hit))
+        {
+            var pos = hit.point;
+            var minD = float.MaxValue;
+            Point nearestSite = null;
+            foreach (var site in graph.sites)
+            {
+                var d = Vector3.Distance(pos, site.ToVector3());
+                if (minD > d)
+                {
+                    minD = d;
+                    nearestSite = site;
+                }
+            }
+
+            heightMap.AddTo(nearestSite);
+            CreateChunks();
+        }
+    }
 
     void CreateChunks()
     {

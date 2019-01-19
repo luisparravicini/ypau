@@ -9,6 +9,7 @@ public class Heights
     float decay;
     float sharpness;
     Dictionary<Point, HashSet<Point>> edges;
+    ISet<Point> visited;
 
     public Heights(VoronoiGraph graph, float decay, float sharpness)
     {
@@ -17,6 +18,7 @@ public class Heights
         this.decay = decay;
         this.sharpness = sharpness;
         heights = new Dictionary<Point, float>();
+        visited = new HashSet<Point>();
     }
 
     internal void Create()
@@ -25,23 +27,37 @@ public class Heights
         heights.Clear();
 
         var firstPoint = graph.edges[Random.Range(0, graph.edges.Count)].lSite;
+        UpdateHeights(firstPoint);
+    }
+
+    internal void AddTo(Point p)
+    {
+        UpdateHeights(p);
+    }
+
+    void UpdateHeights(Point firstPoint)
+    {
         var height = Random.Range(0.75f, 1f);
         heights[firstPoint] = height;
 
         var queue = new Queue<Point>();
+        visited.Add(firstPoint);
         EnqueueNeighbours(queue, firstPoint);
 
         while (queue.Count > 0)
         {
             var p = queue.Dequeue();
+            visited.Add(p);
             var modifier = 1 + Random.value * sharpness - sharpness;
             if (Mathf.Approximately(modifier, 0))
                 modifier = 1;
-            var h = Mathf.Clamp(AverageNearHeights(p) * decay * modifier, 0, 1);
-            heights[p] = h;
+            var h = (heights.ContainsKey(p) ? heights[p] : 0);
+            h += AverageNearHeights(p) * decay * modifier;
+            heights[p] = Mathf.Clamp(h, 0, 1);
 
             EnqueueNeighbours(queue, p);
         }
+        visited.Clear();
     }
 
     private void SetupEdges()
@@ -89,7 +105,7 @@ public class Heights
     {
         foreach (var neighbourPoint in edges[point])
         {
-            if (!heights.ContainsKey(neighbourPoint) && !queue.Contains(neighbourPoint))
+            if (!visited.Contains(neighbourPoint) && !queue.Contains(neighbourPoint))
                 queue.Enqueue(neighbourPoint);
         }
     }
