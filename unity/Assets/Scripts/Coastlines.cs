@@ -75,6 +75,8 @@ public class Coastlines : MonoBehaviour
         var meshRenderer = GetComponent<MeshRenderer>();
         var mesh = meshFilter.mesh;
 
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
         foreach (var cell in graph.cells)
         {
             bool willCreate = (cell.halfEdges.Count > 0);
@@ -83,18 +85,21 @@ public class Coastlines : MonoBehaviour
 
             var position = transform.position;
 
-            Vector3[] vertices = new Vector3[cell.halfEdges.Count + 1];
-            int[] triangles = new int[(cell.halfEdges.Count + 0) * 3];
-            vertices[0] = cell.site.ToVector3() - position;
-            triangles[0] = 0;
-            for (int v = 1, t = 1; v < vertices.Length; v++, t += 3)
+            vertices.Add(cell.site.ToVector3() - position);
+            triangles.Add(0);
+            var lastV = cell.halfEdges.Count;
+            for (int v = 1, t = 1; v <= lastV; v++, t += 3)
             {
-                vertices[v] = cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position;
-                triangles[t] = v;
-                triangles[t + 1] = v + 1;
-            }
-            triangles[triangles.Length - 1] = 1;
+                vertices.Add(cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position);
 
+                triangles.Add(v);
+                if (v != lastV)
+                {
+                    triangles.Add(v + 1);
+                    triangles.Add(0);
+                }
+            }
+            triangles.Add(1);
 
             foreach (var vertex in vertices)
             {
@@ -106,9 +111,12 @@ public class Coastlines : MonoBehaviour
                 var i = allVertices.IndexOf(vertices[index]);
                 allTriangs.Add(i);
             }
+            vertices.Clear();
+            triangles.Clear();
         }
 
         Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + allTriangs.Count);
+        mesh.Clear();
         mesh.vertices = allVertices.ToArray();
         mesh.triangles = allTriangs.ToArray();
         mesh.RecalculateBounds();
