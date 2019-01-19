@@ -67,36 +67,85 @@ public class Coastlines : MonoBehaviour
         }
     }
 
+    public void CreateMesh()
+    {
+        var allVertices = new List<Vector3>();
+        var allTriangs = new List<int>();
+        var meshFilter = GetComponent<MeshFilter>();
+        var meshRenderer = GetComponent<MeshRenderer>();
+        var mesh = meshFilter.mesh;
+
+        foreach (var cell in graph.cells)
+        {
+            bool willCreate = (cell.halfEdges.Count > 0);
+
+            if (!willCreate) continue;
+
+            var position = transform.position;
+
+            Vector3[] vertices = new Vector3[cell.halfEdges.Count + 1];
+            int[] triangles = new int[(cell.halfEdges.Count + 0) * 3];
+            vertices[0] = cell.site.ToVector3() - position;
+            triangles[0] = 0;
+            for (int v = 1, t = 1; v < vertices.Length; v++, t += 3)
+            {
+                vertices[v] = cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position;
+                triangles[t] = v;
+                triangles[t + 1] = v + 1;
+            }
+            triangles[triangles.Length - 1] = 1;
+
+
+            foreach (var vertex in vertices)
+            {
+                if (!allVertices.Contains(vertex))
+                    allVertices.Add(vertex);
+            }
+            foreach (var index in triangles)
+            {
+                var i = allVertices.IndexOf(vertices[index]);
+                allTriangs.Add(i);
+            }
+        }
+
+        Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + allTriangs.Count);
+        mesh.vertices = allVertices.ToArray();
+        mesh.triangles = allTriangs.ToArray();
+        mesh.RecalculateBounds();
+        //meshRenderer.sharedMaterial = material;
+    }
+
     void CreateChunks()
     {
-        foreach (var obj in chunks)
-        {
-            obj.gameObject.SetActive(false);
-            obj.transform.SetParent(poolContainer);
-            chunksPool.Enqueue(obj);
-        }
-        chunks.Clear();
+        CreateMesh();
+        //foreach (var obj in chunks)
+        //{
+        //    obj.gameObject.SetActive(false);
+        //    obj.transform.SetParent(poolContainer);
+        //    chunksPool.Enqueue(obj);
+        //}
+        //chunks.Clear();
 
-        foreach (Cell cell in graph.cells)
-        {
-            FractureChunk chunk;
-            if (chunksPool.Count > 0)
-            {
-                chunk = chunksPool.Dequeue();
-                chunk.gameObject.SetActive(true);
-            }
-            else
-            {
-                chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity).GetComponent<FractureChunk>();
-            }
-            chunk.name = "Chunk " + cell.site.id;
-            chunk.transform.SetParent(chunksContainer);
-            chunks.Add(chunk);
+        //foreach (Cell cell in graph.cells)
+        //{
+        //    FractureChunk chunk;
+        //    if (chunksPool.Count > 0)
+        //    {
+        //        chunk = chunksPool.Dequeue();
+        //        chunk.gameObject.SetActive(true);
+        //    }
+        //    else
+        //    {
+        //        chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity).GetComponent<FractureChunk>();
+        //    }
+        //    chunk.name = "Chunk " + cell.site.id;
+        //    chunk.transform.SetParent(chunksContainer);
+        //    chunks.Add(chunk);
 
-            //fracChunk.CreateFanMesh(cell);
-            chunk.CreateStipMesh(cell);
-            chunk.SetColor(heightColors.Evaluate(heightMap.Height(cell.site)));
-        }
+        //    //fracChunk.CreateFanMesh(cell);
+        //    chunk.CreateStipMesh(cell);
+        //    chunk.SetColor(heightColors.Evaluate(heightMap.Height(cell.site)));
+        //}
     }
 
     void CreateHeights()
