@@ -76,6 +76,7 @@ public class Coastlines : MonoBehaviour
         var mesh = meshFilter.mesh;
 
         var vertices = new List<Vector3>();
+        var verticesHash = new Dictionary<Vector3, int>();
         var triangles = new List<int>();
         foreach (var cell in graph.cells)
         {
@@ -103,12 +104,15 @@ public class Coastlines : MonoBehaviour
 
             foreach (var vertex in vertices)
             {
-                if (!allVertices.Contains(vertex))
+                if (!verticesHash.ContainsKey(vertex))
+                {
+                    verticesHash[vertex] = allVertices.Count;
                     allVertices.Add(vertex);
+                }
             }
             foreach (var index in triangles)
             {
-                var i = allVertices.IndexOf(vertices[index]);
+                var i = verticesHash[vertices[index]];
                 allTriangs.Add(i);
             }
             vertices.Clear();
