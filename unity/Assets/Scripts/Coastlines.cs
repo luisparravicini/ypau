@@ -60,126 +60,16 @@ public class Coastlines : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.G))
-        {
             CreateMap();
-        }
     }
 
-    public void CreateMesh()
-    {
-        const int MaxMaterials = 10;
-        var allVertices = new List<Vector3>();
-        var allTriangs = new Dictionary<int, List<int>>();
-        var meshFilter = GetComponent<MeshFilter>();
-        var meshRenderer = GetComponent<MeshRenderer>();
-        var mesh = meshFilter.mesh;
 
-        var vertices = new List<Vector3>();
-        var verticesHash = new Dictionary<Vector3, int>();
-        var triangles = new List<int>();
-        foreach (var cell in graph.cells)
-        {
-            if (cell.halfEdges.Count == 0) continue;
-
-            var position = transform.position;
-
-            vertices.Add(cell.site.ToVector3() - position);
-            triangles.Add(0);
-            var lastV = cell.halfEdges.Count;
-            for (int v = 1; v <= lastV; v++)
-            {
-                vertices.Add(cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position);
-
-                triangles.Add(v);
-                if (v != lastV)
-                {
-                    triangles.Add(v + 1);
-                    triangles.Add(0);
-                }
-            }
-            triangles.Add(1);
-
-            foreach (var vertex in vertices)
-            {
-                if (!verticesHash.ContainsKey(vertex))
-                {
-                    verticesHash[vertex] = allVertices.Count;
-                    allVertices.Add(vertex);
-                }
-            }
-            var submesh = Mathf.RoundToInt(heightMap.Height(cell.site) * MaxMaterials);
-            if (!allTriangs.ContainsKey(submesh))
-                allTriangs[submesh] = new List<int>();
-            foreach (var index in triangles)
-            {
-                var i = verticesHash[vertices[index]];
-                allTriangs[submesh].Add(i);
-            }
-            vertices.Clear();
-            triangles.Clear();
-        }
-
-        var triangCount = allTriangs.Values.Sum(values => values.Count);
-        Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + triangCount);
-
-        mesh.Clear();
-        mesh.vertices = allVertices.ToArray();
-
-        mesh.subMeshCount = MaxMaterials;
-        var keys = allTriangs.Keys.ToArray<int>();
-        System.Array.Sort<int>(keys);
-        foreach (var index in keys)
-        {
-            mesh.SetIndices(allTriangs[index].ToArray(), MeshTopology.Triangles, index);
-        }
-
-        mesh.RecalculateBounds();
-
-        var materials = new List<Material>();
-        var heightMaterial = Resources.Load<Material>("Height");
-        while (materials.Count < MaxMaterials)
-            materials.Add(heightMaterial);
-        meshRenderer.materials = materials.ToArray();
-
-        var colorIndex = 0f;
-        foreach (var m in meshRenderer.materials)
-        {
-            m.color = heightColors.Evaluate(colorIndex);
-            colorIndex += 1f / MaxMaterials;
-        }
-    }
 
     void CreateChunks()
     {
-        CreateMesh();
-        //foreach (var obj in chunks)
-        //{
-        //    obj.gameObject.SetActive(false);
-        //    obj.transform.SetParent(poolContainer);
-        //    chunksPool.Enqueue(obj);
-        //}
-        //chunks.Clear();
-
-        //foreach (Cell cell in graph.cells)
-        //{
-        //    FractureChunk chunk;
-        //    if (chunksPool.Count > 0)
-        //    {
-        //        chunk = chunksPool.Dequeue();
-        //        chunk.gameObject.SetActive(true);
-        //    }
-        //    else
-        //    {
-        //        chunk = Instantiate(chunkObj, cell.site.ToVector3(), Quaternion.identity).GetComponent<FractureChunk>();
-        //    }
-        //    chunk.name = "Chunk " + cell.site.id;
-        //    chunk.transform.SetParent(chunksContainer);
-        //    chunks.Add(chunk);
-
-        //    //fracChunk.CreateFanMesh(cell);
-        //    chunk.CreateStipMesh(cell);
-        //    chunk.SetColor(heightColors.Evaluate(heightMap.Height(cell.site)));
-        //}
+        var generator = new MeshGenerator(heightMap, heightColors, transform.position,
+            graph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
+        generator.Create();
     }
 
     void CreateHeights()
