@@ -88,7 +88,7 @@ public class Coastlines : MonoBehaviour
             vertices.Add(cell.site.ToVector3() - position);
             triangles.Add(0);
             var lastV = cell.halfEdges.Count;
-            for (int v = 1, t = 1; v <= lastV; v++, t += 3)
+            for (int v = 1; v <= lastV; v++)
             {
                 vertices.Add(cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position);
 
