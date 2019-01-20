@@ -41,21 +41,26 @@ public class Heights
         heights[firstPoint] = height;
 
         var queue = new Queue<Point>();
+        queue.Enqueue(firstPoint);
         visited.Add(firstPoint);
-        EnqueueNeighbours(queue, firstPoint);
 
         while (queue.Count > 0)
         {
             var p = queue.Dequeue();
             visited.Add(p);
-            var modifier = 1 + Random.value * sharpness - sharpness;
-            if (Mathf.Approximately(modifier, 0))
-                modifier = 1;
-            var h = (heights.ContainsKey(p) ? heights[p] : 0);
-            h += AverageNearHeights(p) * decay * modifier;
-            heights[p] = Mathf.Clamp(h, 0, 1);
 
-            EnqueueNeighbours(queue, p);
+            EnqueueNeighbours(queue, p, (neighbour) =>
+            {
+                //var modifier = 1;
+                var modifier = 1 - Random.value * sharpness;
+                if (Mathf.Approximately(modifier, 0))
+                    modifier = 1;
+                var h = heights[p] * decay;
+                if (heights.ContainsKey(neighbour))
+                    h += heights[neighbour];
+                h *= modifier;
+                heights[neighbour] = Mathf.Clamp(h, 0, 1);
+            });
         }
         visited.Clear();
     }
@@ -79,34 +84,15 @@ public class Heights
             edges[a].Add(b);
     }
 
-    private float AverageNearHeights(Point p)
-    {
-        float h = 0f;
-        int n = 0;
-
-        foreach (var neighbourPoint in edges[p])
-        {
-            if (heights.ContainsKey(neighbourPoint))
-            {
-                h += heights[neighbourPoint];
-                n += 1;
-            }
-        }
-
-        //if (n == 0)
-        //throw new System.Exception("No height in neighbours");
-        //if (n == 0)
-        //n = 1;
-
-        return h / n;
-    }
-
-    private void EnqueueNeighbours(Queue<Point> queue, Point point)
+    private void EnqueueNeighbours(Queue<Point> queue, Point point, System.Action<Point> action)
     {
         foreach (var neighbourPoint in edges[point])
         {
             if (!visited.Contains(neighbourPoint) && !queue.Contains(neighbourPoint))
+            {
+                action(neighbourPoint);
                 queue.Enqueue(neighbourPoint);
+            }
         }
     }
 
@@ -115,7 +101,7 @@ public class Heights
         if (!heights.ContainsKey(site))
         {
             Debug.Log("no height!");
-            return 1;
+            return 0;
         }
         return heights[site];
         //return Random.Range(0f, 1f);

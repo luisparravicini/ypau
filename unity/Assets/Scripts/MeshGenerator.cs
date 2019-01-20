@@ -20,6 +20,7 @@ public class MeshGenerator
     private List<Vector3> allVertices;
     private Dictionary<int, List<int>> allTriangs;
     const int MaxMaterials = 10;
+    const float MaxHeightIndex = 9;
 
     public MeshGenerator(Heights heightMap, Gradient colors, Vector3 position, VoronoiGraph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
     {
@@ -51,7 +52,7 @@ public class MeshGenerator
             triangles.Clear();
         }
 
-        SendMesh(allVertices, allTriangs);
+        SendMesh();
         CreateMaterials();
     }
 
@@ -66,7 +67,7 @@ public class MeshGenerator
                 allVertices.Add(vertex);
             }
         }
-        var submesh = Mathf.RoundToInt(heightMap.Height(cell.site) * MaxMaterials);
+        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(cell.site) * MaxMaterials), MaxHeightIndex);
         if (!allTriangs.ContainsKey(submesh))
             allTriangs[submesh] = new List<int>();
         foreach (var index in triangles)
@@ -99,7 +100,7 @@ public class MeshGenerator
         return true;
     }
 
-    private void SendMesh(List<Vector3> allVertices, Dictionary<int, List<int>> allTriangs)
+    private void SendMesh()
     {
         var triangCount = allTriangs.Values.Sum(values => values.Count);
         Debug.Log("mesh vertices: " + allVertices.Count + ", triangles:" + triangCount);
@@ -112,6 +113,8 @@ public class MeshGenerator
         System.Array.Sort<int>(keys);
         foreach (var index in keys)
         {
+            if (index >= MaxMaterials)
+                Debug.Log(index);
             mesh.SetIndices(allTriangs[index].ToArray(), MeshTopology.Triangles, index);
         }
 
