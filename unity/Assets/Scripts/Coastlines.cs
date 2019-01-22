@@ -16,6 +16,7 @@ public class Coastlines : MonoBehaviour
     public Gradient heightColors;
     public float heightDecay;
     public float sharpness;
+    public int maxMaterials;
 
     private List<Point> sites;
     private FortuneVoronoi voronoi;
@@ -97,7 +98,7 @@ public class Coastlines : MonoBehaviour
 
     void CreateChunks()
     {
-        var generator = new MeshGenerator(heightMap, heightColors, transform.position,
+        var generator = new MeshGenerator(maxMaterials, heightMap, heightColors, transform.position,
             graph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
         generator.Create();
     }

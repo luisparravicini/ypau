@@ -11,6 +11,7 @@ public class MeshGenerator
     private MeshRenderer meshRenderer;
     private Mesh mesh;
     VoronoiGraph graph;
+    private int maxMaterials;
     private Heights heightMap;
     private Gradient heightColors;
     Vector3 position;
@@ -19,11 +20,10 @@ public class MeshGenerator
     private List<int> triangles;
     private List<Vector3> allVertices;
     private Dictionary<int, List<int>> allTriangs;
-    const int MaxMaterials = 10;
-    const float MaxHeightIndex = 9;
 
-    public MeshGenerator(Heights heightMap, Gradient colors, Vector3 position, VoronoiGraph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
+    public MeshGenerator(int maxMaterials, Heights heightMap, Gradient colors, Vector3 position, VoronoiGraph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
     {
+        this.maxMaterials = maxMaterials;
         this.heightMap = heightMap;
         this.heightColors = colors;
         this.position = position;
@@ -67,7 +67,7 @@ public class MeshGenerator
                 allVertices.Add(vertex);
             }
         }
-        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(cell.site) * MaxMaterials), MaxHeightIndex);
+        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(cell.site) * maxMaterials), maxMaterials - 1);
         if (!allTriangs.ContainsKey(submesh))
             allTriangs[submesh] = new List<int>();
         foreach (var index in triangles)
@@ -108,13 +108,11 @@ public class MeshGenerator
         mesh.Clear();
         mesh.vertices = allVertices.ToArray();
 
-        mesh.subMeshCount = MaxMaterials;
+        mesh.subMeshCount = maxMaterials;
         var keys = allTriangs.Keys.ToArray<int>();
         System.Array.Sort<int>(keys);
         foreach (var index in keys)
         {
-            if (index >= MaxMaterials)
-                Debug.Log(index);
             mesh.SetIndices(allTriangs[index].ToArray(), MeshTopology.Triangles, index);
         }
 
@@ -125,7 +123,7 @@ public class MeshGenerator
     {
         var materials = new List<Material>();
         var heightMaterial = Resources.Load<Material>("Height");
-        while (materials.Count < MaxMaterials)
+        while (materials.Count < maxMaterials)
             materials.Add(heightMaterial);
         meshRenderer.materials = materials.ToArray();
 
@@ -133,7 +131,7 @@ public class MeshGenerator
         foreach (var m in meshRenderer.materials)
         {
             m.color = heightColors.Evaluate(colorIndex);
-            colorIndex += 1f / MaxMaterials;
+            colorIndex += 1f / maxMaterials;
         }
     }
 }
