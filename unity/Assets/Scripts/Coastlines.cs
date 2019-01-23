@@ -17,13 +17,16 @@ public class Coastlines : MonoBehaviour
     public float heightDecay;
     public float sharpness;
     public int maxMaterials;
+    public float maxHeight;
 
     private List<Point> sites;
     private FortuneVoronoi voronoi;
     public VoronoiGraph graph;
+    private Graph newGraph;
     private List<FractureChunk> chunks;
     private Queue<FractureChunk> chunksPool;
     Heights heightMap;
+    bool drawCells;
 
     void Start()
     {
@@ -64,6 +67,9 @@ public class Coastlines : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.C))
+            drawCells = !drawCells;
+
         if (Input.GetKeyDown(KeyCode.G))
             CreateMap();
 
@@ -98,7 +104,7 @@ public class Coastlines : MonoBehaviour
 
     void CreateChunks()
     {
-        var generator = new MeshGenerator(maxMaterials, heightMap, heightColors, transform.position,
+        var generator = new MeshGenerator(maxHeight, maxMaterials, heightMap, heightColors, transform.position,
             graph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
         generator.Create();
     }
@@ -232,7 +238,7 @@ public class Coastlines : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (graph)
+        if (graph && drawCells)
         {
             foreach (Voronoi.Cell cell in graph.cells)
             {

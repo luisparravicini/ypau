@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Voronoi;
-using System;
 
 public class MeshGenerator
 {
@@ -20,9 +19,11 @@ public class MeshGenerator
     private List<int> triangles;
     private List<Vector3> allVertices;
     private Dictionary<int, List<int>> allTriangs;
+    float maxHeight;
 
-    public MeshGenerator(int maxMaterials, Heights heightMap, Gradient colors, Vector3 position, VoronoiGraph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
+    public MeshGenerator(float maxHeight, int maxMaterials, Heights heightMap, Gradient colors, Vector3 position, VoronoiGraph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
     {
+        this.maxHeight = maxHeight;
         this.maxMaterials = maxMaterials;
         this.heightMap = heightMap;
         this.heightColors = colors;
@@ -81,12 +82,12 @@ public class MeshGenerator
     {
         if (cell.halfEdges.Count == 0) return false;
 
-        vertices.Add(cell.site.ToVector3() - position);
+        vertices.Add(EdgePosition(cell.site));
         triangles.Add(0);
         var lastV = cell.halfEdges.Count;
         for (int v = 1; v <= lastV; v++)
         {
-            vertices.Add(cell.halfEdges[v - 1].GetStartPoint().ToVector3() - position);
+            vertices.Add(EdgePosition(cell.halfEdges[v - 1].GetStartPoint()));
 
             triangles.Add(v);
             if (v != lastV)
@@ -98,6 +99,66 @@ public class MeshGenerator
         triangles.Add(1);
 
         return true;
+    }
+
+    Dictionary<Point, HashSet<Point>> boundaryNearSites;
+    Dictionary<Point, float> edgeHeights;
+    private Vector3 EdgePosition(Point site)
+    {
+        var pos = site.ToVector3() - position;
+        if (boundaryNearSites == null)
+        {
+            boundaryNearSites = new Dictionary<Point, HashSet<Point>>();
+            foreach (var cell in graph.cells)
+            {
+                foreach (var edge in cell.halfEdges)
+                {
+                    var k = edge.edge.lSite;
+                    if (!boundaryNearSites.ContainsKey(k))
+                        boundaryNearSites[k] = new HashSet<Point>();
+                    boundaryNearSites[k].Add(cell.site);
+
+                    k = edge.edge.rSite;
+                    if (k != null)
+                    {
+                        if (!boundaryNearSites.ContainsKey(k))
+                            boundaryNearSites[k] = new HashSet<Point>();
+                        boundaryNearSites[k].Add(cell.site);
+                    }
+                }
+            }
+
+            edgeHeights = new Dictionary<Point, float>();
+            foreach (var p in boundaryNearSites.Keys)
+            {
+                edgeHeights[p] = boundaryNearSites[p].Average(heightMap.Height);
+            }
+
+            foreach (var cell in graph.cells)
+            {
+                float h = 0;
+                int n = 0;
+                foreach (var edge in cell.halfEdges)
+                {
+                    var k = edge.edge.lSite;
+                    h += edgeHeights[k];
+                    n++;
+
+                    k = edge.edge.rSite;
+                    if (k != null)
+                    {
+                        h += edgeHeights[k];
+                        n++;
+                    }
+                }
+                if (n != 0) h /= n;
+                edgeHeights[cell.site] = h;
+            }
+        }
+
+        if (edgeHeights.ContainsKey(site))
+            pos.y = edgeHeights[site] * maxHeight;
+        return pos;
     }
 
     private void SendMesh()

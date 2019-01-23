@@ -7,8 +7,8 @@ using Voronoi;
 [CustomEditor(typeof(Coastlines))]
 public class CoastlinesEditor : Editor
 {
-    void OnSceneGUI()
-    {
+    //void OnSceneGUI()
+    //{
         //Coastlines voronoi = (Coastlines)target;
         //if (!voronoi.graph)
         //    return;
@@ -37,5 +37,5 @@ public class CoastlinesEditor : Editor
         //        }
         //    }
         //}
-    }
+    //}
 }
