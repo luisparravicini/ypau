@@ -44,10 +44,10 @@ public class MeshGenerator
         vertices = new List<Vector3>();
         triangles = new List<int>();
 
-        foreach (var cell in graph.cells)
+        foreach (var node in graph.cells)
         {
-            if (CreateCellMesh(cell))
-                CopySubmesh(cell);
+            if (CreateCellMesh(node))
+                CopySubmesh(node);
 
             vertices.Clear();
             triangles.Clear();
@@ -57,7 +57,7 @@ public class MeshGenerator
         CreateMaterials();
     }
 
-    private void CopySubmesh(Cell cell)
+    private void CopySubmesh(Cell node)
     {
 
         foreach (var vertex in vertices)
@@ -68,7 +68,7 @@ public class MeshGenerator
                 allVertices.Add(vertex);
             }
         }
-        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(cell.site) * maxMaterials), maxMaterials - 1);
+        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(node.site) * maxMaterials), maxMaterials - 1); //1
         if (!allTriangs.ContainsKey(submesh))
             allTriangs[submesh] = new List<int>();
         foreach (var index in triangles)
@@ -78,16 +78,16 @@ public class MeshGenerator
         }
     }
 
-    private bool CreateCellMesh(Cell cell)
+    private bool CreateCellMesh(Cell node)
     {
-        if (cell.halfEdges.Count == 0) return false;
+        if (node.halfEdges.Count == 0) return false;
 
-        vertices.Add(EdgePosition(cell.site));
+        vertices.Add(EdgePosition(node.site));
         triangles.Add(0);
-        var lastV = cell.halfEdges.Count;
+        var lastV = node.halfEdges.Count;
         for (int v = 1; v <= lastV; v++)
         {
-            vertices.Add(EdgePosition(cell.halfEdges[v - 1].GetStartPoint()));
+            vertices.Add(EdgePosition(node.halfEdges[v - 1].GetStartPoint()));
 
             triangles.Add(v);
             if (v != lastV)
@@ -109,21 +109,21 @@ public class MeshGenerator
         if (boundaryNearSites == null)
         {
             boundaryNearSites = new Dictionary<Point, HashSet<Point>>();
-            foreach (var cell in graph.cells)
+            foreach (var node in graph.cells)
             {
-                foreach (var edge in cell.halfEdges)
+                foreach (var edge in node.halfEdges)
                 {
                     var k = edge.edge.lSite;
                     if (!boundaryNearSites.ContainsKey(k))
                         boundaryNearSites[k] = new HashSet<Point>();
-                    boundaryNearSites[k].Add(cell.site);
+                    boundaryNearSites[k].Add(node.site);
 
                     k = edge.edge.rSite;
                     if (k != null)
                     {
                         if (!boundaryNearSites.ContainsKey(k))
                             boundaryNearSites[k] = new HashSet<Point>();
-                        boundaryNearSites[k].Add(cell.site);
+                        boundaryNearSites[k].Add(node.site);
                     }
                 }
             }
@@ -168,6 +168,7 @@ public class MeshGenerator
 
         mesh.Clear();
         mesh.vertices = allVertices.ToArray();
+        //boundaryNearSites mesh.vertices = allVertices.ToArray();
 
         mesh.subMeshCount = maxMaterials;
         var keys = allTriangs.Keys.ToArray<int>();

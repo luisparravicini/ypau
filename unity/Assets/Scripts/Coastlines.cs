@@ -84,21 +84,21 @@ public class Coastlines : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            var pos = hit.point;
-            var minD = float.MaxValue;
-            Point nearestSite = null;
-            foreach (var site in graph.sites)
-            {
-                var d = Vector3.Distance(pos, site.ToVector3());
-                if (minD > d)
-                {
-                    minD = d;
-                    nearestSite = site;
-                }
-            }
+            //var pos = hit.point;
+            //var minD = float.MaxValue;
+            //Node nearestSite = null;
+            //foreach (var node in newGraph.nodes)
+            //{
+            //    var d = Vector3.Distance(pos, node.point);
+            //    if (minD > d)
+            //    {
+            //        minD = d;
+            //        nearestSite = node;
+            //    }
+            //}
 
-            heightMap.AddTo(nearestSite);
-            CreateChunks();
+            //heightMap.AddTo(nearestSite);
+            //CreateChunks();
         }
     }
 
@@ -112,6 +112,7 @@ public class Coastlines : MonoBehaviour
     void CreateHeights()
     {
         heightMap = new Heights(graph, heightDecay, sharpness);
+        //heightMap = new Heights(newGraph, heightDecay, sharpness);
         heightMap.Create();
     }
 
@@ -119,6 +120,7 @@ public class Coastlines : MonoBehaviour
     {
         this.sites = sites;
         this.graph = this.voronoi.Compute(sites, this.bounds);
+        newGraph = new Graph(this.graph);
     }
 
     void CreateSites(bool clear = true, bool relax = false, int relaxCount = 2)
