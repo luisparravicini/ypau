@@ -22,11 +22,12 @@ public class Coastlines : MonoBehaviour
     private List<Point> sites;
     private FortuneVoronoi voronoi;
     public VoronoiGraph graph;
-    private Graph newGraph;
+    public CoastlinesGen.Graph newGraph;
     private List<FractureChunk> chunks;
     private Queue<FractureChunk> chunksPool;
     Heights heightMap;
-    bool drawCells;
+    [HideInInspector]
+    public bool drawCells;
 
     void Start()
     {
@@ -105,7 +106,7 @@ public class Coastlines : MonoBehaviour
     void CreateChunks()
     {
         var generator = new MeshGenerator(maxHeight, maxMaterials, heightMap, heightColors, transform.position,
-            graph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
+            newGraph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
         generator.Create();
     }
 
@@ -120,7 +121,7 @@ public class Coastlines : MonoBehaviour
     {
         this.sites = sites;
         this.graph = this.voronoi.Compute(sites, this.bounds);
-        newGraph = new Graph(this.graph);
+        newGraph = new CoastlinesGen.Graph(this.graph);
     }
 
     void CreateSites(bool clear = true, bool relax = false, int relaxCount = 2)
@@ -240,25 +241,47 @@ public class Coastlines : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (graph && drawCells)
+        Gizmos.DrawWireCube(transform.position, new Vector3(bounds.size.x, 1, bounds.size.x));
+
+        if (newGraph != null && drawCells)
         {
-            foreach (Voronoi.Cell cell in graph.cells)
+            foreach (var node in newGraph.nodes)
             {
                 Gizmos.color = Color.black;
-                Gizmos.DrawCube(new Vector3(cell.site.x, 0, cell.site.y), Vector3.one);
+                Gizmos.DrawCube(new Vector3(node.point.x, 0, node.point.y), Vector3.one);
 
-                if (cell.halfEdges.Count > 0)
+                if (node.edges.Count > 0)
                 {
-                    for (int i = 0; i < cell.halfEdges.Count; i++)
+                    for (int i = 0; i < node.edges.Count; i++)
                     {
-                        HalfEdge halfEdge = cell.halfEdges[i];
+                        var edge = node.edges[i];
 
                         Gizmos.color = Color.red;
-                        Gizmos.DrawLine(halfEdge.GetStartPoint().ToVector3(),
-                                        halfEdge.GetEndPoint().ToVector3());
+                        Gizmos.DrawLine(edge.startPoint,
+                                        edge.endPoint);
                     }
                 }
             }
+
+            //if (graph && drawCells)
+            //{
+            //foreach (Voronoi.Cell cell in graph.cells)
+            //{
+            //    Gizmos.color = Color.black;
+            //    Gizmos.DrawCube(new Vector3(cell.site.x, 0, cell.site.y), Vector3.one);
+
+            //    if (cell.halfEdges.Count > 0)
+            //    {
+            //        for (int i = 0; i < cell.halfEdges.Count; i++)
+            //        {
+            //            HalfEdge halfEdge = cell.halfEdges[i];
+
+            //            Gizmos.color = Color.red;
+            //            Gizmos.DrawLine(halfEdge.GetStartPoint().ToVector3(),
+            //                            halfEdge.GetEndPoint().ToVector3());
+            //        }
+            //    }
+            //}
 
             //foreach (var edge in graph.edges)
             //{
