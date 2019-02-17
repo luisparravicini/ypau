@@ -132,6 +132,7 @@ public class MeshGenerator
         }
 
         mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
     }
 
     private void CreateMaterials()
