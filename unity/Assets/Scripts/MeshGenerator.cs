@@ -11,7 +11,8 @@ public class MeshGenerator
     private Mesh mesh;
     private int maxMaterials;
     private Heights heightMap;
-    private Gradient heightColors;
+    private Gradient terrainColors;
+    private Gradient waterColors;
     Vector3 position;
     private List<Vector3> vertices;
     private Dictionary<Vector3, int> verticesHash;
@@ -19,14 +20,17 @@ public class MeshGenerator
     private List<Vector3> allVertices;
     private Dictionary<int, List<int>> allTriangs;
     private Graph graph;
+    private float waterLevel;
     float maxHeight;
 
-    public MeshGenerator(float maxHeight, int maxMaterials, Heights heightMap, Gradient colors, Vector3 position, Graph graph, MeshFilter meshFilter, MeshRenderer meshRenderer)
+    public MeshGenerator(float maxHeight, int maxMaterials, Heights heightMap, Gradient terrainColors, Gradient waterColors, Vector3 position, Graph graph, MeshFilter meshFilter, MeshRenderer meshRenderer, float waterLevel)
     {
+        this.waterLevel = waterLevel;
         this.maxHeight = maxHeight;
         this.maxMaterials = maxMaterials;
         this.heightMap = heightMap;
-        this.heightColors = colors;
+        this.terrainColors = terrainColors;
+        this.waterColors = waterColors;
         this.position = position;
         this.graph = graph;
         this.meshFilter = meshFilter;
@@ -141,7 +145,8 @@ public class MeshGenerator
         var colorIndex = 0f;
         foreach (var m in meshRenderer.materials)
         {
-            m.color = heightColors.Evaluate(colorIndex);
+            var gradient = (colorIndex < waterLevel ? waterColors : terrainColors);
+            m.color = gradient.Evaluate(colorIndex);
             colorIndex += 1f / maxMaterials;
         }
     }

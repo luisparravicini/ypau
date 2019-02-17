@@ -14,10 +14,12 @@ public class Coastlines : MonoBehaviour
     public int relaxationSteps;
     public GameObject chunkObj;
     public Gradient heightColors;
+    public Gradient heightWaterColors;
     public float heightDecay;
     public float sharpness;
     public int maxMaterials;
     public float maxHeight;
+    public float waterLevel;
 
     private List<Point> sites;
     private FortuneVoronoi voronoi;
@@ -105,15 +107,14 @@ public class Coastlines : MonoBehaviour
 
     void CreateChunks()
     {
-        var generator = new MeshGenerator(maxHeight, maxMaterials, heightMap, heightColors, transform.position,
-            newGraph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>());
+        var generator = new MeshGenerator(maxHeight, maxMaterials, heightMap, heightColors, heightWaterColors, transform.position,
+            newGraph, GetComponent<MeshFilter>(), GetComponent<MeshRenderer>(), waterLevel);
         generator.Create();
     }
 
     void CreateHeights()
     {
         heightMap = new Heights(newGraph, heightDecay, sharpness);
-        //heightMap = new Heights(newGraph, heightDecay, sharpness);
         heightMap.Create();
     }
 
