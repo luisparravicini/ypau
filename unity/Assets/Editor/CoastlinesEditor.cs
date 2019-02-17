@@ -13,10 +13,10 @@ public class CoastlinesEditor : Editor
         if (voronoi.newGraph == null || !voronoi.drawCells)
             return;
 
-        foreach (var node in voronoi.newGraph.nodes)
-        {
-            Handles.color = Color.black;
-            Handles.Label(node.point + voronoi.transform.position, "Site " + node.point.ToString());
+        //foreach (var node in voronoi.newGraph.nodes)
+        //{
+            //Handles.color = Color.black;
+            //Handles.Label(node.point.pos + voronoi.transform.position, "Site " + node.point.pos.ToString());
 
             //if (node.edges.Count == 0)
                 //continue;
@@ -36,7 +36,7 @@ public class CoastlinesEditor : Editor
             //        }
             //    }
             //}
-        }
+    //    }
     }
 
     //void OnSceneGUI()

@@ -112,7 +112,7 @@ public class Coastlines : MonoBehaviour
 
     void CreateHeights()
     {
-        heightMap = new Heights(graph, heightDecay, sharpness);
+        heightMap = new Heights(newGraph, heightDecay, sharpness);
         //heightMap = new Heights(newGraph, heightDecay, sharpness);
         heightMap.Create();
     }
@@ -121,7 +121,6 @@ public class Coastlines : MonoBehaviour
     {
         this.sites = sites;
         this.graph = this.voronoi.Compute(sites, this.bounds);
-        newGraph = new CoastlinesGen.Graph(this.graph);
     }
 
     void CreateSites(bool clear = true, bool relax = false, int relaxCount = 2)
@@ -145,6 +144,8 @@ public class Coastlines : MonoBehaviour
         {
             RelaxSites(relaxCount);
         }
+
+        newGraph = new CoastlinesGen.Graph(this.graph);
     }
 
     void RelaxSites(int iterations)

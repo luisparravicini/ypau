@@ -68,7 +68,7 @@ public class MeshGenerator
                 allVertices.Add(vertex);
             }
         }
-        var submesh = 0; //(int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(node.site) * maxMaterials), maxMaterials - 1);
+        var submesh = (int)Mathf.Min(Mathf.RoundToInt(heightMap.Height(node.point) * maxMaterials), maxMaterials - 1);
         if (!allTriangs.ContainsKey(submesh))
             allTriangs[submesh] = new List<int>();
         foreach (var index in triangles)
@@ -106,58 +106,7 @@ public class MeshGenerator
     private Vector3 EdgePosition(Vector3 site)
     {
         var pos = site - position;
-        //if (boundaryNearSites == null)
-        //{
-            //boundaryNearSites = new Dictionary<Vector3, HashSet<Vector3>>();
-            //foreach (var node in graph.nodes)
-            //{
-            //    foreach (var edge in node.edges)
-            //    {
-            //        var k = edge. edge.lSite;
-            //        if (!boundaryNearSites.ContainsKey(k))
-            //            boundaryNearSites[k] = new HashSet<Vector3>();
-            //        boundaryNearSites[k].Add(node.point);
-
-            //        k = edge.edge.rSite;
-            //        if (k != null)
-            //        {
-            //            if (!boundaryNearSites.ContainsKey(k))
-            //                boundaryNearSites[k] = new HashSet<Vector3>();
-            //            boundaryNearSites[k].Add(node.point);
-            //        }
-            //    }
-            //}
-
-            //edgeHeights = new Dictionary<Vector3, float>();
-            //foreach (var p in boundaryNearSites.Keys)
-            //{
-            //    edgeHeights[p] = 0; //boundaryNearSites[p].Average(heightMap.Height);
-            //}
-
-            //foreach (var cell in graph.nodes)
-            //{
-            //    float h = 0;
-            //    int n = 0;
-            //    foreach (var edge in cell.edges)
-            //    {
-            //        var k = edge. edge.lSite;
-            //        h += edgeHeights[k];
-            //        n++;
-
-            //        k = edge.edge.rSite;
-            //        if (k != null)
-            //        {
-            //            h += edgeHeights[k];
-            //            n++;
-            //        }
-            //    }
-            //    if (n != 0) h /= n;
-            //    edgeHeights[cell.point] = h;
-            //}
-        //}
-
-        //if (edgeHeights.ContainsKey(site))
-            //pos.y = edgeHeights[site] * maxHeight;
+        pos.y = heightMap.Height(site) * maxHeight;
 
         return pos;
     }
@@ -169,9 +118,8 @@ public class MeshGenerator
 
         mesh.Clear();
         mesh.vertices = allVertices.ToArray();
-        //boundaryNearSites mesh.vertices = allVertices.ToArray();
 
-        mesh.subMeshCount = 1; //maxMaterials;
+        mesh.subMeshCount = maxMaterials;
         var keys = allTriangs.Keys.ToArray<int>();
         System.Array.Sort<int>(keys);
         foreach (var index in keys)

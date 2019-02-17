@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace CoastlinesGen
 {
@@ -34,14 +35,12 @@ namespace CoastlinesGen
     public class Graph
     {
         public List<Node> nodes;
-        public Dictionary<Vector3, HashSet<Node>> positionsNeighbours;
+        public Dictionary<Vector3, HashSet<Vector3>> edgeNeighbours;
+        public List<Vector3> edgeNeighboursKeys;
 
         public Graph(Voronoi.VoronoiGraph graph)
         {
-            //positionsNeighbours = new Dictionary<Vector3, HashSet<Node>>();
             nodes = new List<Node>();
-
-            //var cellPositions = new Dictionary<Voronoi.Point, Node>();
 
             foreach (var cell in graph.cells)
             {
@@ -54,41 +53,40 @@ namespace CoastlinesGen
                 }
 
                 nodes.Add(node);
-                //cellPositions[nodeSite] = node;
             }
 
+            var edgeNeighboursAux = new Dictionary<Voronoi.Point, HashSet<Voronoi.Point>>();
 
-            //void AddNeighbour2(Voronoi.Point a, Node n)
-            //{
-            //    if (a == null)
-            //        return;
+            void AddNeighbour(Voronoi.Point a, Voronoi.Point b)
+            {
+                if (a == null || b == null)
+                    return;
 
-            //    var aPos = a.ToVector3();
-            //    if (!positionsNeighbours.ContainsKey(aPos))
-            //        positionsNeighbours[aPos] = new HashSet<Node>();
-            //    positionsNeighbours[aPos].Add(n);
-            //};
+                if (!edgeNeighboursAux.ContainsKey(a))
+                    edgeNeighboursAux[a] = new HashSet<Voronoi.Point>();
+                edgeNeighboursAux[a].Add(b);
+            };
 
-            //foreach (var edge in graph.edges)
-            //{
-            //    AddNeighbour2(edge.lSite, node);
-            //    AddNeighbour2(edge.rSite, node);
-            //}
+            foreach (var node in graph.cells)
+            {
+                foreach (var edge in node.halfEdges)
+                {
+                    AddNeighbour(edge.GetStartPoint(), edge.GetEndPoint());
+                    AddNeighbour(edge.GetEndPoint(), edge.GetStartPoint());
+                }
+            }
+            edgeNeighbours = new Dictionary<Vector3, HashSet<Vector3>>();
+            edgeNeighboursKeys = new List<Vector3>();
+            foreach (Voronoi.Point k in edgeNeighboursAux.Keys)
+            {
+                var neighbours = new HashSet<Vector3>(edgeNeighboursAux[k].Select(x => x.ToVector3()));
+                var p = k.ToVector3();
+                edgeNeighbours[p] = neighbours;
 
-            //void AddNeighbour(Voronoi.Point a, Voronoi.Point b)
-            //{
-            //    if (a == null || b == null)
-            //        return;
+                edgeNeighboursKeys.Add(p);
+            }
 
-            //    cellPositions[a].neighbours.Add(cellPositions[b]);
-            //};
-
-            //foreach (var edge in graph.edges)
-            //{
-            //    AddNeighbour(edge.lSite, edge.rSite);
-            //    AddNeighbour(edge.rSite, edge.lSite);
-            //}
-
+            Debug.Log("graph: " + nodes.Count + " nodes, " + edgeNeighboursKeys.Count + " edgeNeighbours");
         }
     }
 

@@ -1,46 +1,44 @@
 ﻿using System.Collections.Generic;
-using Voronoi;
 using UnityEngine;
+using CoastlinesGen;
+using System.Linq;
 
 public class Heights
 {
-    private VoronoiGraph graph;
-    Dictionary<Point, float> heights;
+    private Graph graph;
+    Dictionary<Vector3, float> heights;
     float decay;
     float sharpness;
-    Dictionary<Point, HashSet<Point>> edges;
-    ISet<Point> visited;
+    ISet<Vector3> visited;
 
-    public Heights(VoronoiGraph graph, float decay, float sharpness)
+    public Heights(Graph graph, float decay, float sharpness)
     {
-        edges = new Dictionary<Point, HashSet<Point>>();
         this.graph = graph;
         this.decay = decay;
         this.sharpness = sharpness;
-        heights = new Dictionary<Point, float>();
-        visited = new HashSet<Point>();
+        heights = new Dictionary<Vector3, float>();
+        visited = new HashSet<Vector3>();
     }
 
     internal void Create()
     {
-        SetupEdges();
         heights.Clear();
 
-        var firstPoint = graph.edges[Random.Range(0, graph.edges.Count)].lSite;
+        var firstPoint = graph.edgeNeighboursKeys[Random.Range(0, graph.edgeNeighboursKeys.Count)];
         UpdateHeights(firstPoint);
     }
 
-    internal void AddTo(Point p)
+    internal void AddTo(Vector3 p)
     {
         UpdateHeights(p);
     }
 
-    void UpdateHeights(Point firstPoint)
+    void UpdateHeights(Vector3 firstPoint)
     {
         var height = Random.Range(0.75f, 1f);
         heights[firstPoint] = height;
 
-        var queue = new Queue<Point>();
+        var queue = new Queue<Vector3>();
         queue.Enqueue(firstPoint);
         visited.Add(firstPoint);
 
@@ -63,30 +61,22 @@ public class Heights
             });
         }
         visited.Clear();
+
+        UpdateCenterHeights();
     }
 
-    private void SetupEdges()
+    private void UpdateCenterHeights()
     {
-        foreach (var edge in graph.edges)
+        foreach (var node in graph.nodes)
         {
-            AddNeighbour(edge.lSite, edge.rSite);
-            AddNeighbour(edge.rSite, edge.lSite);
+            var h = node.edges.Average(x => heights[x.startPoint]);
+            heights[node.point] = h;
         }
     }
 
-    private void AddNeighbour(Point a, Point b)
+    private void EnqueueNeighbours(Queue<Vector3> queue, Vector3 point, System.Action<Vector3> action)
     {
-        if (a == null)
-            return;
-        if (!edges.ContainsKey(a))
-            edges[a] = new HashSet<Point>();
-        if (b != null)
-            edges[a].Add(b);
-    }
-
-    private void EnqueueNeighbours(Queue<Point> queue, Point point, System.Action<Point> action)
-    {
-        foreach (var neighbourPoint in edges[point])
+        foreach (var neighbourPoint in graph.edgeNeighbours[point])
         {
             if (!visited.Contains(neighbourPoint) && !queue.Contains(neighbourPoint))
             {
@@ -96,7 +86,7 @@ public class Heights
         }
     }
 
-    internal float Height(Point site)
+    internal float Height(Vector3 site)
     {
         if (!heights.ContainsKey(site))
         {
@@ -104,6 +94,5 @@ public class Heights
             return 0;
         }
         return heights[site];
-        //return Random.Range(0f, 1f);
     }
 }
