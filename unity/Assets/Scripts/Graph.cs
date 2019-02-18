@@ -41,6 +41,19 @@ namespace CoastlinesGen
         public Graph(Voronoi.VoronoiGraph graph)
         {
             nodes = new List<Node>();
+            edgeNeighbours = new Dictionary<Vector3, HashSet<Vector3>>();
+            edgeNeighboursKeys = new List<Vector3>();
+            void AddNeighbour(Vector3 a, Vector3 b)
+            {
+                if (a == null || b == null)
+                    return;
+
+                if (!edgeNeighbours.ContainsKey(a))
+                    edgeNeighbours[a] = new HashSet<Vector3>();
+                edgeNeighbours[a].Add(b);
+
+                edgeNeighboursKeys.Add(a);
+            };
 
             foreach (var cell in graph.cells)
             {
@@ -50,40 +63,12 @@ namespace CoastlinesGen
                 {
                     var e = new Edge(edge.GetStartPoint().ToVector3(), edge.GetEndPoint().ToVector3());
                     node.edges.Add(e);
+
+                    AddNeighbour(e.startPoint, e.endPoint);
+                    AddNeighbour(e.endPoint, e.startPoint);
                 }
 
                 nodes.Add(node);
-            }
-
-            var edgeNeighboursAux = new Dictionary<Voronoi.Point, HashSet<Voronoi.Point>>();
-
-            void AddNeighbour(Voronoi.Point a, Voronoi.Point b)
-            {
-                if (a == null || b == null)
-                    return;
-
-                if (!edgeNeighboursAux.ContainsKey(a))
-                    edgeNeighboursAux[a] = new HashSet<Voronoi.Point>();
-                edgeNeighboursAux[a].Add(b);
-            };
-
-            foreach (var node in graph.cells)
-            {
-                foreach (var edge in node.halfEdges)
-                {
-                    AddNeighbour(edge.GetStartPoint(), edge.GetEndPoint());
-                    AddNeighbour(edge.GetEndPoint(), edge.GetStartPoint());
-                }
-            }
-            edgeNeighbours = new Dictionary<Vector3, HashSet<Vector3>>();
-            edgeNeighboursKeys = new List<Vector3>();
-            foreach (Voronoi.Point k in edgeNeighboursAux.Keys)
-            {
-                var neighbours = new HashSet<Vector3>(edgeNeighboursAux[k].Select(x => x.ToVector3()));
-                var p = k.ToVector3();
-                edgeNeighbours[p] = neighbours;
-
-                edgeNeighboursKeys.Add(p);
             }
 
             Debug.Log("graph: " + nodes.Count + " nodes, " + edgeNeighboursKeys.Count + " edgeNeighbours");

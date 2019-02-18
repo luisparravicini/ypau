@@ -10,9 +10,11 @@ public class Heights
     float decay;
     float sharpness;
     ISet<Vector3> visited;
+    float waterLevel;
 
-    public Heights(Graph graph, float decay, float sharpness)
+    public Heights(Graph graph, float decay, float sharpness, float waterLevel)
     {
+        this.waterLevel = waterLevel;
         this.graph = graph;
         this.decay = decay;
         this.sharpness = sharpness;
@@ -60,7 +62,45 @@ public class Heights
         }
         visited.Clear();
 
+        AdjustPolygonNearWaterLevel();
         UpdateCenterHeights();
+    }
+
+    private void AdjustPolygonNearWaterLevel()
+    {
+        var underWater = new HashSet<Vector3>();
+        var overWater = new HashSet<Vector3>();
+
+
+        void ClassifyPoint(Vector3 pos)
+        {
+            var list = (heights[pos] > waterLevel ? overWater : underWater);
+            list.Add(pos);
+        };
+
+        foreach (var node in graph.nodes)
+        {
+            underWater.Clear();
+            overWater.Clear();
+
+            node.edges.ForEach(x =>
+            {
+                ClassifyPoint(x.startPoint);
+                ClassifyPoint(x.endPoint);
+            });
+
+            if (underWater.Count == 0 || overWater.Count == 0)
+                continue;
+
+
+            var moveUp = (underWater.Count <= overWater.Count);
+            var positions = (moveUp ? underWater : overWater);
+            var delta = 0.001f;
+            foreach (var p in positions)
+            {
+                heights[p] = waterLevel + delta * (moveUp ? 1 : -1);
+            }
+        }
     }
 
     private void UpdateCenterHeights()

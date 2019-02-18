@@ -114,7 +114,7 @@ public class Coastlines : MonoBehaviour
 
     void CreateHeights()
     {
-        heightMap = new Heights(newGraph, heightDecay, sharpness);
+        heightMap = new Heights(newGraph, heightDecay, sharpness, waterLevel);
         //var firstPoint = graph.edgeNeighboursKeys[Random.Range(0, graph.edgeNeighboursKeys.Count)];
         var initialPoint = Vector3.zero;
         float minD = float.MaxValue;

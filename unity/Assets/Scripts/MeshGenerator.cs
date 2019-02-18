@@ -110,7 +110,8 @@ public class MeshGenerator
     private Vector3 EdgePosition(Vector3 site)
     {
         var pos = site - position;
-        pos.y = heightMap.Height(site) * maxHeight;
+        var h = heightMap.Height(site);
+        pos.y = h * maxHeight;
 
         return pos;
     }
