@@ -20,11 +20,9 @@ public class Heights
         visited = new HashSet<Vector3>();
     }
 
-    internal void Create()
+    internal void Create(Vector3 firstPoint)
     {
         heights.Clear();
-
-        var firstPoint = graph.edgeNeighboursKeys[Random.Range(0, graph.edgeNeighboursKeys.Count)];
         UpdateHeights(firstPoint);
     }
 
