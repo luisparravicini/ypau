@@ -87,21 +87,27 @@ public class Coastlines : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            //var pos = hit.point;
-            //var minD = float.MaxValue;
-            //Node nearestSite = null;
-            //foreach (var node in newGraph.nodes)
-            //{
-            //    var d = Vector3.Distance(pos, node.point);
-            //    if (minD > d)
-            //    {
-            //        minD = d;
-            //        nearestSite = node;
-            //    }
-            //}
+            var pos = hit.point;
+            var minD = float.MaxValue;
+            CoastlinesGen.Node nearestSite = null;
+            foreach (var node in newGraph.nodes)
+            {
+                var d = Vector3.Distance(pos, node.point);
+                if (minD > d)
+                {
+                    minD = d;
+                    nearestSite = node;
+                }
+            }
 
-            //heightMap.AddTo(nearestSite);
-            //CreateChunks();
+            if (nearestSite == null)
+                return;
+
+            var p = nearestSite.edges[0].startPoint;
+            Debug.Log("adding height to " + p);
+
+            heightMap.AddTo(p);
+            CreateChunks();
         }
     }
 

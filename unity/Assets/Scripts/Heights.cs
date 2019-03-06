@@ -25,18 +25,21 @@ public class Heights
     internal void Create(Vector3 firstPoint)
     {
         heights.Clear();
-        UpdateHeights(firstPoint);
-    }
 
-    internal void AddTo(Vector3 p)
-    {
-        UpdateHeights(p);
-    }
-
-    void UpdateHeights(Vector3 firstPoint)
-    {
         var height = Random.Range(0.75f, 1f);
-        heights[firstPoint] = height;
+        UpdateHeights(firstPoint, height, decay);
+    }
+
+    internal void AddTo(Vector3 pos)
+    {
+        var height = Random.Range(0.1f, 0.25f);
+        height = Mathf.Clamp(height + heights[pos], 0, 1);
+        UpdateHeights(pos, height, decay * 0.25f);
+    }
+
+    void UpdateHeights(Vector3 firstPoint, float firstHeight, float decay)
+    {
+        heights[firstPoint] = firstHeight;
 
         var queue = new Queue<Vector3>();
         queue.Enqueue(firstPoint);
@@ -124,13 +127,13 @@ public class Heights
         }
     }
 
-    internal float Height(Vector3 site)
+    internal float Height(Vector3 pos)
     {
-        if (!heights.ContainsKey(site))
+        if (!heights.ContainsKey(pos))
         {
-            Debug.Log("no height!");
+            Debug.Log("no height for " + pos + "!");
             return 0;
         }
-        return heights[site];
+        return heights[pos];
     }
 }
